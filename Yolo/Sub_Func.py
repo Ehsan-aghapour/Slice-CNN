@@ -1,3 +1,15 @@
+# ---
+# jupyter:
+#   jupytext:
+#     cell_metadata_filter: -all
+#     formats: ipynb,py:light
+#     text_representation:
+#       extension: .py
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.14.4
+# ---
+
 from ast import In
 from posixpath import split
 from pyexpat import model
@@ -10,8 +22,6 @@ import caffe
 import os
 import keras
 from keras.utils.vis_utils import plot_model
-import re
-
 
 Main_Layers={}
 Main_Layers['bvlc_alexnet.caffemodel']=['data','conv1','conv2','conv3','conv4','conv5','fc6','fc7','fc8']
@@ -324,9 +334,9 @@ def main_keras(M,Start,End):
     Load_Net_Keras(M)
     Fill_Indexes_keras(M)
     #print(dict)
-    m=split_keras_2(M,Start,End)
-    return m
+    split_keras_2(M,Start,End)
 
+    
 
 if __name__ == "__main__":
     import argparse
@@ -362,93 +372,8 @@ if __name__ == "__main__":
         ok=os.system(cmd)
         print(f'Convert caffe to rknn return code is {ok}')
 
+        
 
-# +
-def extract_number(string):
-    # Extract the number from the string
-    pattern = r"(\d+)"
-    match = re.search(pattern, string)
-    if match:
-        return int(match.group(0))
-    return 0
-
-def sort_strings_by_number(strings):
-    # Sort the strings based on the embedded numbers
-    sorted_strings = sorted(strings, key=extract_number)
-    return sorted_strings
-
-def extract():
-	ls=[l.name for l in model.layers]
-	sls=sort_strings_by_number(ls)
-	conv_index=0
-	batch_norm_index=0
-	layers_with_batch=-1
-	#ls=model.layers[240]+model.layers[243]+model.layers[249]
-	#ls=model.layers[241]+model.layers[244]+model.layers[250]
-	#ls=model.layers[242]+model.layers[245]+model.layers[251]
-	for kk,ll in enumerate(sls):
-		#print(ll)
-		l=model.get_layer(ll)
-		for w in l.weights:
-			name=w.name
-			name2=name
-			name=name.partition(':')[0]
-			name=name.replace('/','_')
-			name=name.replace('bnorm','batch_normalization')
-			name=name.replace('moving_variance','var')
-			name=name.replace('moving_mean','mean')
-			pattern = r"(\d+)"
-			#name = re.sub(pattern, lambda match: str(int(match.group(0)) + 1), name)
-			#with each conv layer we increase the conve index by one (given that it is not conv_bias)
-			if name.find('conv')==0:
-				if name.find('bias') < 0:
-					conv_index=conv_index+1
-				name = re.sub(pattern, lambda match: str(conv_index), name)
-				
-			# the batch normalization indexing get different form conv indexing from layer conv59 which has not 
-			# batch normalization (also layer 67 and 75 do not have bn)
-			# so for batch-normaliztion layers for each 4 sub-layer (mean, var, gamma, beta) we increase its indexing
-			if name.find('batch_normalization')==0:
-				layers_with_batch+=1
-				if layers_with_batch%4==0:
-					batch_norm_index+=1
-				name = re.sub(pattern, lambda match: str(batch_norm_index), name)
-				
-				
-			name=name.replace('kernel','w')
-			name=name.replace('conv','conv2d')
-			name=name.replace('bias','b')
-			name="yolov3_model/"+name+'.npy'
-			# Extract the weights from the layer
-			layer_weights = l.get_weights()
-
-			# Get the list of variable names
-			variable_names = [var.name for var in l.weights]
-			for _name, _weight in zip(variable_names, layer_weights):
-				if _name==name2:
-					np.save(os.path.join(args.dumpPath, name),_weight)
-			
-			print(name,name2,kk)
-
-
-# +
-def set_main_layers_yolov3():
-    global Main_Layers
-    modelfile='Yolo/Yolov3.h5'
-    model=keras.models.load_model(modelfile)
-    model.summary()
-    layers=[l.name for l in model.layers]
-    sorted_layers=sort_strings_by_number(layers)
-    #Main_Layers['Yolov3.h5']=[l for l in sorted_layers if 'padding' not in l and 'bias' not in l]
-    Main_Layers['Yolov3.h5']=[l for l in sorted_layers if 'conv' in l and 'bias' not in l]
-    print(len(Main_Layers['Yolov3.h5']))
-    
-'''set_main_layers_yolov3()
-m=main_keras('Yolo/Yolov3.h5',5,15)
-m.summary()
-'''
-
-# -
 
 def Temp():
     input=net.layer[0];

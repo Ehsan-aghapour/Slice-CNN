@@ -11,15 +11,22 @@ from rknn.api import RKNN
 import sys
 from pathlib import Path
 
+explicit_channel_reorder=True
+explicit_mean_reduction=True
+quantized=False
+quantization_dataset=""
+
+v=''
+if quantized:
+    v='_quantized'
 name=sys.argv[1]
 #rknn_name=name.split('/')[-1].split('.')[0]+'.rknn'
-rknn_name=name.split('.')[0]+'.rknn'
+rknn_name=name.split('.')[0]+v+'.rknn'
 rknn_name_precompiled=name.split('/')[-1].split('.')[0]+'_precompiled.rknn'
 model_type=name.split('.')[-1]
 precompile=False
 
-explicit_channel_reorder=True
-explicit_mean_reduction=True
+
 
 '''
 #MobileNet:
@@ -116,12 +123,15 @@ if __name__ == '__main__':
     #rknn.load_onnx(name)
     if model_type=='pb':
         print(f'args number {len(sys.argv)}')
-        if len(sys.argv)==5:   
+        if len(sys.argv)>=5:   
             inputs=sys.argv[2]
             outputs=sys.argv[3]
             strOfNumbers = sys.argv[4]
             listOfNumbers= [int(x) for x in strOfNumbers.split(',')]
             INPUT_SIZE=listOfNumbers
+            if len(sys.argv)==7:
+                quantized=bool(int(sys.argv[5]))
+                quantization_dataset=sys.argv[6]
         rknn.load_tensorflow(tf_pb=name,
             inputs=[inputs],
             outputs=[outputs],
@@ -154,7 +164,7 @@ if __name__ == '__main__':
     if precompile:
         if model_type!='rknn':
             print('--> Building model')
-            rknn.build(do_quantization=False)
+            rknn.build(do_quantization=quantized)
             print('done')
         #rknn.export_rknn('./model.rknn')  # Export and save rknn model file
             print(rknn_name)
@@ -172,7 +182,12 @@ if __name__ == '__main__':
     else:
         if model_type!='rknn':
             print('--> Building model')
-            rknn.build(do_quantization=False)
+            if quantized:
+                rknn_name=rknn_name.split('.')[0]+'_quantized'+rknn_name.split('.')[1]
+                rknn.build(do_quantization=quantized,dataset=quantization_dataset)
+            else:
+                print("inja"+str(quantized))
+                rknn.build(do_quantization=quantized)
             print('done')
         #rknn.export_rknn('./model.rknn')  # Export and save rknn model file
             print(rknn_name)

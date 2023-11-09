@@ -33,29 +33,76 @@ Main_Layers['ResNet50.h5']=['input_1','conv1_pad','res2a_branch2a','res2b_branch
     'res5c_branch2a','fc1000']
 
 
+granularity="Conv"
+
+if granularity=="Conv":
+    formatPattern = r"^(?!.*_g\d*)(?!.*relu)(?!.*batchnorm)(?!.*linear)(.*conv.*|.*fc.*)"
+    # If you do not want to skip input and output layers:
+    # formatPattern = r"^(?!.*_g\d*)(?!.*relu)(?!.*batchnorm)(?!.*linear)(.*conv.*|.*fc.*|$)"
+
+#
+if granularity=="Operation":
+    formatPattern = r"^(?!.*_g\d*)(?!.*relu)(?!$)"
+
+index = 0
+
+def check_name(name):
+    global index
+    if re.search(formatPattern, name, re.IGNORECASE):
+        index += 1
+        print(f"{index} layer: {name}")
+        return True
+    else:
+        print(f"{index} skipping layer: {name}")
+        return False
+
+
+
 #_dir="/home/ehsan/UvA/ARMCL/Khadas/ARMCL-Local/scripts/blobs_extractor/Working_tree/Sub_Model/"
 _dir="/home/ehsan/UvA/Sub_Model/"
 
+def set_main_layers(Model_name):
+    global Main_Layers
+    layers=[l.name for l in net.layer]
+    #sorted_layers=sort_strings_by_number(layers)
+    #Main_Layers['Yolov3.h5']=[l for l in sorted_layers if 'padding' not in l and 'bias' not in l]
+    ##Main_Layers[Model_name]=[l for l in layers if 'relu' not in l and 'drop' not in l]
+    Main_Layers[Model_name]=[l for l in layers if check_name(l)]
+    print(f"main layers of the model {Model_name} are {Main_Layers[Model_name]}")
+    print(len(Main_Layers[Model_name]))
 
+def set_main_layers_keras(Model_name):
+    global Main_Layers
+    layers=[l.name for l in model.layers]
+    #sorted_layers=sort_strings_by_number(layers)
+    #Main_Layers['Yolov3.h5']=[l for l in sorted_layers if 'padding' not in l and 'bias' not in l]
+    #Main_Layers[Model_name]=[l for l in layers if 'relu' not in l and 'drop' not in l]
+    Main_Layers[Model_name]=[l for l in layers if check_name(l)]
+    print(f"main layers of the model {Model_name} are {Main_Layers[Model_name]}")
+    print(len(Main_Layers[Model_name]))
 
-def Load_Net(M='bvlc_alexnet.caffemodel',Structure='deploy.prototxt'):
+def Load_Net(M='Alex/bvlc_alexnet.caffemodel',Structure='Alex/deploy.prototxt'):
     global net 
     net = caffe_pb2.NetParameter()
     global Model  
     Model = caffe.Net(Structure, 1, weights=M)
     with open(Structure, 'r') as f:
         pb.text_format.Merge(f.read(), net)
+    set_main_layers(M.split('/')[-1])
     global main_layers
     main_layers=Main_Layers[M.split('/')[-1]]
     print(f'Model {M} loaded.')
+    
     return net
 
 def Load_Net_Keras(Model_name):
     global model
     model=keras.models.load_model(Model_name)
+    set_main_layers_keras(Model_name.split('/')[-1])
     global main_layers
     main_layers=Main_Layers[Model_name.split('/')[-1]]
     print(f'Model {Model_name} loaded.')
+    
     return model
 
 
@@ -75,6 +122,7 @@ def Fill_Indexes():
     print(len(layers))
     layer=0
     started=0
+    print(main_layers)
     for i in range(len(layers)):
         if layers[i].name in main_layers:
             if started:
@@ -134,11 +182,11 @@ def Slice(Start,End):
     # Extract Input shape of start layer
     
     Bottom_Name=Model.bottom_names[main_layers[Start]][0]
-    print(f'Previous layer name:{Bottom_Name}')
+    print(f'Previous layer name: {Bottom_Name}')
     Input_Shape=Model.blobs[Bottom_Name].data.shape
     if len(Input_Shape) == 2:
     	Input_Shape=Input_Shape[:1]+(1,1,)+Input_Shape[1:]
-    print(f'Input shape is:{Input_Shape}')
+    print(f'Input shape is: {Input_Shape}')
     #for b in Model.blobs:
     #	print(Model.blobs[b].data.shape)
 
@@ -153,9 +201,14 @@ def Slice(Start,End):
     End_index=dict[End]['end']
     print(f'Start and end indexes are: {Start_index,End_index}')
     del net.layer[End_index+1:]
-    
-    previous_layer_name=net.layer[Start_index-1].name
-    previous_layer_name2=main_layers[Start-1]
+    previous_layers=[Bottom_Name]
+    if Start_index>0:
+        previous_layer_name=net.layer[Start_index-1].name
+        previous_layers.append(previous_layer_name)
+    if Start>0:     
+        previous_layer_name2=main_layers[Start-1]
+        previous_layers.append(previous_layer_name2)
+    #print(f'start:{Start}, end:{End}, p:{previous_layer_name}, p2:{previous_layer_name2} ')
     del net.layer[1:Start_index]
 
     '''
@@ -166,10 +219,12 @@ def Slice(Start,End):
     '''
 
     # Connect start layers to input layer (Considering multiple parallel input layer)
-    print(f'Name of previousl layer {previous_layer_name} and {previous_layer_name2} and also {Bottom_Name}')
+    #print(f'Name of previousl layer {previous_layer_name} and {previous_layer_name2} and also {Bottom_Name}')
+    print(f'Name of previous layers: {previous_layers}')
     for l in net.layer:
         print(f'bottom of {l.name}:{l.bottom}')
-        if l.bottom==[previous_layer_name] or l.bottom==[previous_layer_name2] or l.bottom==[Bottom_Name]:
+        #if l.bottom==[previous_layer_name] or l.bottom==[previous_layer_name2] or l.bottom==[Bottom_Name]:
+        if l.bottom and l.bottom[0] in previous_layers:
             print(f'new first layer after data:{l}')
             l.ClearField('bottom')
             l.bottom.append(input.name)
@@ -310,7 +365,10 @@ def split_keras_2(model_name,Start,End):
 
 def main(Start,End, M, Structure):
     Load_Net(M,Structure)
+    print('inja')
+    
     Fill_Indexes()
+    print(dict)
     Slice(Start,End)
 
     

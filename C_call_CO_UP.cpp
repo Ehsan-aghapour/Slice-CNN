@@ -7,21 +7,24 @@ std::map<std::string,std::string> Models{{"Alex","bvlc_alexnet.caffemodel"},
 										 {"Google","bvlc_googlenet.caffemodel"},
 										 {"Squeeze","squeezenet_v1.0.caffemodel"},
 										 {"Mobile","MobileNet.h5"},
-										 {"Res50","ResNet50.h5"}};
+										 {"Res50","ResNet50.h5"},
+										 {"Yolo","Yolov3.h5"}};
 std::map<std::string,std::string> Structures{{"Alex","deploy.prototxt"},
 											{"Google","deploy.prototxt"},
 											{"Squeeze","deploy.prototxt"},
 											{"Mobile",""},
-											{"Res50",""}};
+											{"Res50",""},
+											{"Yolo",""}};
 
 //std::string _dir="/home/ehsan/UvA/ARMCL/Khadas/ARMCL-Local/scripts/blobs_extractor/Working_tree/Sub_Model/";
 std::string _dir="/home/ehsan/UvA/Sub_Model/";
 
 
 
+
 void Slice_Model(std::string model, std::string structure, int start, int end){
 	std::ostringstream command;
-	command<<"conda run -n rock-kit3 python "<<_dir<<"Sub_Func.py --Start="<<start<<" --End="<<end<<" --Model="<<model<<" --Structure="<<structure;
+	command<<"conda run -n rock-kit3 python "<<_dir<<"Sub_Func_CO_UP.py --Start="<<start<<" --End="<<end<<" --Model="<<model<<" --Structure="<<structure;
 	std::cout<<command.str()<<std::endl;
 	system(command.str().c_str());
 

@@ -6,7 +6,8 @@ cp $p/$target $p/$compiler
 
 #XX=clang++ CC=clang scons Werror=0 -j16 debug=0 asserts=0 neon=1 opencl=1 os=android arch=armv7a 
 
-$compiler $2 -static-libstdc++ -Iinclude/ -Irockx-rk3399pro-Android/include -Llibs/ -Lrockx-rk3399pro-Android/arm64-v8a/ -lrknn_api -lrockx -lstdc++ -llog -pie -Wl,-rpath,/system/usr/lib64/ -lz
+#$compiler $2 -static-libstdc++ -Iinclude/ -Irockx-rk3399pro-Android/include -Llibs/ -Lrockx-rk3399pro-Android/arm64-v8a/ -lrknn_api -lrockx -lstdc++ -llog -pie -Wl,-rpath,/system/usr/lib64/ -lz
+$compiler $2 -o CO-UP.out  -Iinclude/ -Irockx-rk3399pro-Android/include -Llibs/ -Lrockx-rk3399pro-Android/arm64-v8a/ -lrknn_api -lrockx -lstdc++ -llog -pie -Wl,-rpath,/system/usr/lib64/ -lz
 #scons 
 
 rm $p/$compiler
@@ -18,5 +19,5 @@ adb push a.out ${wdir}/
 adb shell chmod +x ${wdir}/a.out
 #adb shell ${wdir}/a.out model.rknn 20 
 #adb shell ${wdir}/a.out mobilenet_v1_sample_test_precompiled.rknn ${wdir}/dog_224x224.jpg 20 
-adb shell ${wdir}/a.out model.rknn ${wdir}/space_shuttle_227.jpg 1
+##adb shell ${wdir}/a.out model.rknn ${wdir}/space_shuttle_227.jpg 1
 

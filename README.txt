@@ -37,4 +37,7 @@ https://stackoverflow.com/questions/49492255/how-to-replace-or-insert-intermedia
 The othe method is to modified the graph instead of creating new tensors. I used this method by replacing input_tensor and inbound_layers
 of model.layer[18]._outbound_nodes to the new inlayer instead of model.layer[18]
 
+To generate a.ou:
+g++ C_call.cpp 
+
 

@@ -328,7 +328,7 @@ def main_keras(M,Start,End):
     return m
 
 
-if __name__ == "__main__":
+if __name__ == "__mmain__":
     import argparse
 
     parser = argparse.ArgumentParser(description='Slice a model')
@@ -443,10 +443,10 @@ def set_main_layers_yolov3():
     Main_Layers['Yolov3.h5']=[l for l in sorted_layers if 'conv' in l and 'bias' not in l]
     print(len(Main_Layers['Yolov3.h5']))
     
-'''set_main_layers_yolov3()
+set_main_layers_yolov3()
 m=main_keras('Yolo/Yolov3.h5',5,15)
 m.summary()
-'''
+
 
 # -
 
