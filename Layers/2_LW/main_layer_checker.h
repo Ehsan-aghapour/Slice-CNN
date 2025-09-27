@@ -53,7 +53,7 @@ inline std::map<std::string, std::unordered_set<std::string>> ending_task_names{
 			"Conv2d_9_pointwise/Relu6",
 			"Conv2d_10_pointwise/Relu6",
 			"Conv2d_11_pointwise/Relu6",
-			"Conv2d_12_pointwise/Relu6",
+			//"Conv2d_12_pointwise/Relu6",
 			"Logits/AvgPool_1a",
 			"Softmax"
 		}

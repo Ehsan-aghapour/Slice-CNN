@@ -5,16 +5,16 @@
 
 std::map<std::string,std::string> Models{{"Alex","bvlc_alexnet.caffemodel"},
 										 {"Google","bvlc_googlenet.caffemodel"},
-										 {"Squeeze","squeezenet_v1.0.caffemodel"},
-										 {"Mobile","MobileNet.h5"},
-										 {"Res50","ResNet50.h5"},
-										 {"Yolo","Yolov3.h5"}};
+										 {"SqueezeV1","squeezenet_v1.0.caffemodel"},
+										 {"MobileV1","MobileNet.h5"},
+										 {"ResV1_50","ResNet50.h5"},
+										 {"YOLOv3","Yolov3.h5"}};
 std::map<std::string,std::string> Structures{{"Alex","deploy.prototxt"},
 											{"Google","deploy.prototxt"},
-											{"Squeeze","deploy.prototxt"},
-											{"Mobile",""},
-											{"Res50",""},
-											{"Yolo",""}};
+											{"SqueezeV1","deploy.prototxt"},
+											{"MobileV1",""},
+											{"ResV1_50",""},
+											{"YOLOv3",""}};
 
 //std::string _dir="/home/ehsan/UvA/ARMCL/Khadas/ARMCL-Local/scripts/blobs_extractor/Working_tree/Sub_Model/";
 std::string _dir="/home/ehsan/UvA/Sub_Model/";
@@ -42,6 +42,10 @@ int main(int argc, char *argv[]){
 	//Model
 	
 	std::string CNN=argv[1];
+	std::string CNN_b=CNN;
+	if (!CNN.empty()) {
+        CNN_b[0] = std::toupper(CNN[0]);
+    }
 	int start=std::stoi(argv[2]);
 	int end=std::stoi(argv[3]);
 	

@@ -3,6 +3,13 @@
 #include <sstream>
 #include <map>
 
+
+/*std::map<std::string,std::string> format{
+	{"Alex","Alex"},
+
+
+};*/
+
 std::map<std::string,std::string> Models{{"Alex","bvlc_alexnet.caffemodel"},
 										 {"Google","bvlc_googlenet.caffemodel"},
 										 {"Squeeze","squeezenet_v1.0.caffemodel"},
